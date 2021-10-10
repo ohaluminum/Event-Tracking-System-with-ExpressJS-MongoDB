@@ -25,8 +25,10 @@ app.use(express.json());    // Allows us to access request body as req.body
 app.use(morgan("dev"));     // Enable incoming request logging in dev mode
     
 // Setting up routers
-//const intakesRouter = require('./routes/intakes')
-//app.use('/intakes', intakesRouter)
+const eventsRouter = require('./routes/events')
+app.use('/events', eventsRouter)
+const attendeesRouter = require('./routes/attendees')
+app.use('/attendees', attendeesRouter)
 
 
 // Declare the port number.
