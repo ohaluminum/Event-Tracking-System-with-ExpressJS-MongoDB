@@ -18,12 +18,12 @@ let eventSchema = new Schema({
         required: true,
         unique: true
     },
-    type: {
+    type: { 
         type: Number,
         required: true,
         min: 1,
         max: 7,
-        validate: {
+        validate: {  // See detail below
             validator: Number.isInteger,
             message: '{VALUE} is not an integer value'
         }
@@ -47,7 +47,7 @@ module.exports = mongoose.model('event', eventSchema)
 
 // 1. name: String - the descirption of event)
 
-// 2. type: Number - any combination of type1 | type2 | type3 
+// 2. type: Number - any combination of type1 | type2 | type3 (since the number of combination is limited, I decided to store it as number)
 //    e.g. 
 //    a. type1 => 1
 //    b. type2 => 2
