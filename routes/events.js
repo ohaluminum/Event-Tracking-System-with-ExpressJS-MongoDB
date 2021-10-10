@@ -1,10 +1,13 @@
 const express = require("express");
 const router = express.Router()
 const EventModel = require('../models/event');
+const AttendeeModel = require('../models/attendee');
+
 
 // POST(CREATE): an endpoint that will insert an event info into DB.
 router.post('/', (req, res, next) => {
 
+    // Creating a new document using create() function.
     EventModel.create(req.body, (error, data) => {
         if (error) {
             return next(error);
@@ -19,6 +22,7 @@ router.post('/', (req, res, next) => {
 // GET(READ): an endpoint to get all event records.
 router.get('/', (req, res, next) => {
 
+    // Finding all event document in the DB.
     EventModel.find((error, data) => {
         if (error) {
             return next(error);
@@ -26,16 +30,17 @@ router.get('/', (req, res, next) => {
         else {
             res.json(data);
         }
-    }).sort({ date: -1 });
+    }).sort({ date: -1 });     // Sort by event date in descending order
 });
 
 
 // PUT(Update): an endpoint to link an attendee to an event by attendee name & event ID.
 router.put('/:id/:attendeeName', (req, res, next) => {
 
+    // Find document by event ID
     EventModel.findOneAndUpdate({ _id: req.params.id, }, {
         $push: {
-            attendeeList: req.params.attendeeName
+            attendeeList: req.params.attendeeName     // attendeeList is an array: push the new attendee to this array.
         }
     }, (error, data) => {
         if (error) {
@@ -49,17 +54,11 @@ router.put('/:id/:attendeeName', (req, res, next) => {
 });
 
 
-/*
-Implement an endpoint that allows the retrieval of information about attendees 
-by type of event (type of event will be a parameter). 
-The end point should console log all attendees older than 18 years and simply return a status code 200 with the message "Success" if no error occurs.
-*/
-
 // GET(READ): an endpoint to retrieve all attendes older than 18 years old by event type.
 router.get('/:type', (req, res, next) => {
 
     // Finding document based on event type
-    EventModel.find({ type: req.params.type }, (error, data) => {
+    EventModel.find({ type: req.params.type }, { _id: 0, attendeeList: 1 }, (error, data) => {
         if (error) {
             return next(error);
         }
@@ -68,10 +67,34 @@ router.get('/:type', (req, res, next) => {
         }
         else {
             res.status(200).send('Success.');
-            console.log('Attendee list:', data)
+            
+            console.log("Attendee List:")
+
+            data.forEach(attendees => {     // Data example: { attendeeList: [ 'Lejing-Huang', 'Celeste-Luo' ] }
+                
+                // Get the attendee name that stored inside the attendeeList field.
+                attendees.attendeeList.forEach(attendee => {
+
+                    // Find the attendee by name in the attendee schema (make sure the attendee exists in the DB).
+                    AttendeeModel.find({ name: attendee}, (error, data) => {
+                        if (error) {
+                            return next(error);
+                        }
+                        else if (data === null) {
+                            console.log('Attendee not found in DB.');
+                        }
+                        else {
+                            // Age check: only log attendees older than 18 years.
+                            if (data[0].age > 18) {
+                                console.log(data[0].name)
+                            }
+                        }
+                    });
+                });
+            });
         }
     });
 });
 
 
-module.exports = router 
+module.exports = router
